@@ -1,11 +1,11 @@
 {
-  "name": "snakeGameServer",
+  "name": "snake-game-server",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "dist/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "tsc && node dist/app.js"
   },
   "repository": {
     "type": "git",
@@ -19,10 +19,13 @@
   },
   "homepage": "https://gitlab.com/snake-mmo/server#readme",
   "dependencies": {
-    "express": "^4.17.1",
-    "socket.io": "^2.2.0"
+    "guid-typescript": "^1.0.9",
+    "socket.io": "^2.3.0",
+    "unique-names-generator": "^4.2.0"
   },
   "devDependencies": {
-    "@types/socket.io": "^2.1.2"
+    "@types/socket.io": "^2.1.2",
+    "tslint": "^6.1.1",
+    "typescript": "^3.8.3"
   }
 }

@@ -1,3 +1,3 @@
 export enum MessageTypes {
-    GAME_UPDATE = "update"
+    SNAKES_STATE = "snakes_state",
 }

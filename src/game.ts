@@ -1,36 +1,53 @@
-import Player from "./player";
-import Config from "./config";
+import { adjectives, animals, colors, uniqueNamesGenerator } from "unique-names-generator";
+import { Config } from "./config";
 import { MessageTypes } from "./constant";
-
+import Snake from "./snake";
+import socket from "socket.io";
+import IMouse from "./mouse";
 
 export default class Game {
-    private _sockets: { [id: string]: SocketIO.Socket };
-    private _players: { [id: string]: Player };
-    private _shouldSendUpdate = false;
+    public snakes: { [id: string]: Snake };
+    private sockets: { [id: string]: SocketIO.Socket };
+    private shouldSendUpdate = false;
 
     constructor() {
-        this._sockets = {};
-        this._players = {};
-        setInterval(this.update.bind(this), 1000 / 60);
+        this.sockets = {};
+        this.snakes = {};
+
+        setInterval(this.update.bind(this), 1000 / 30);
     }
 
-    public addPlayer(socket: SocketIO.Socket, username: string): void {
-        this._sockets[socket.id] = socket;
+    public addSnake(socket: SocketIO.Socket, username?: string): any {
+        this.sockets[socket.id] = socket;
 
         // set his starting position
-        const x: number = Config.MAP_SIZE * (0.25 + Math.random() * 0.5);
-        const y: number = Config.MAP_SIZE * (0.25 + Math.random() * 0.5);
-        this._players[socket.id] = new Player(socket.id, username, x, y);
+        const x: number = Config.MAP_WIDTH * (0.25 + Math.random() * 0.5);
+        const y: number = Config.MAP_HEIGHT * (0.25 + Math.random() * 0.5);
+
+        if (username === undefined) {
+            username = uniqueNamesGenerator({
+                dictionaries: [adjectives, animals, colors],
+                length: 2,
+            });
+        }
+        this.snakes[socket.id] = new Snake(socket.id, username, x, y);
+
+        console.log("[+] snake:\t" + username + "\tsocket (" + socket.id + ")");
     }
 
-    public removePlayer(socket: SocketIO.Socket): void {
-        delete this._sockets[socket.id];
-        delete this._players[socket.id];
+    public removeSnake(socket: SocketIO.Socket): void {
+        const snake = this.snakes[socket.id];
+
+        delete this.sockets[socket.id];
+        delete this.snakes[socket.id];
+
+        console.log("[-] snake:\t" + snake.username + "\tsocket (" + socket.id + ")");
     }
 
-    public handleInput(socket: SocketIO.Socket, dir: any): void {
-        if (this._players[socket.id]) {
-            this._players[socket.id].setDirection(dir);
+    public handleInput(socket: socket.Socket, mouse: IMouse): void {
+        var snake: Snake = this.snakes[socket.id];
+        if (snake !== (null || undefined)) {
+            this.snakes[socket.id].chase(mouse);
         }
     }
 
@@ -38,36 +55,36 @@ export default class Game {
         // calculate time elapsed
         const now: number = Date.now();
 
-        // update each player
-        Object.keys(this._sockets).forEach(playerID => {
-            const player: Player = this._players[playerID];
+        // update each snake
+        Object.keys(this.sockets).forEach((id) => {
+            const snake: Snake = this.snakes[id];
         });
 
-        // send a game update to each player every other time
-        if (this._shouldSendUpdate) {
-            Object.keys(this._sockets).forEach(playerID => {
-                const socket: SocketIO.Socket = this._sockets[playerID];
-                const player: Player = this._players[playerID];
+        // send a game update to each snake every other time
+        if (this.shouldSendUpdate) {
+            Object.keys(this.sockets).forEach((id) => {
+                const socket: SocketIO.Socket = this.sockets[id];
+                const Snake: Snake = this.snakes[id];
                 socket.emit(
-                    MessageTypes.GAME_UPDATE,
-                    this.createUpdate(player),
+                    MessageTypes.SNAKES_STATE,
+                    this.createUpdate(Snake),
                 );
             });
-            this._shouldSendUpdate = false;
+            this.shouldSendUpdate = false;
         } else {
-            this._shouldSendUpdate = true;
+            this.shouldSendUpdate = true;
         }
     }
 
-    public createUpdate(player: Player): any {
-        const nearbyPlayers: Array<Player> = Object
-            .values(this._players)
-            .filter(p => p !== player && p.interspace(player) <= Config.MAP_SIZE / 2);
+    public createUpdate(snake: Snake): any {
+        const snakes: Snake[] = Object.values(this.snakes)
 
         return {
+            me: snake.serialize(),
+            others: snakes
+                .filter((s) => s.id != snake.id)
+                .map((s) => s.serialize()),
             t: Date.now(),
-            me: player.serialize(),
-            others: nearbyPlayers.map(p => p.serialize()),
         };
     }
 }
