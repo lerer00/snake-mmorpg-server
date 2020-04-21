@@ -6,7 +6,7 @@ import IMouse from "./mouse";
 const app = http.createServer()
 const io = socket(app);
 
-app.listen(8080);
+app.listen(process.env.PORT || 3000);
 
 // Single game server.
 const game = new Game();
