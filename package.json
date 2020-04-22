@@ -5,8 +5,9 @@
   "main": "dist/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc && node dist/app.js",
-    "build": "tsc"
+    "start": "node dist/app.js",
+    "build": "tsc",
+    "postinstall":"tsc"
   },
   "repository": {
     "type": "git",
@@ -22,12 +23,12 @@
   "dependencies": {
     "guid-typescript": "^1.0.9",
     "socket.io": "^2.3.0",
-    "unique-names-generator": "^4.2.0"
+    "unique-names-generator": "^4.2.0",
+    "typescript": "^3.8.3"
   },
   "devDependencies": {
     "@types/socket.io": "^2.1.2",
-    "tslint": "^6.1.1",
-    "typescript": "^3.8.3"
+    "tslint": "^6.1.1"
   },
   "engine": {
     "node": ">=8"
