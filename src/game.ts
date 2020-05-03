@@ -18,7 +18,6 @@ export default class Game {
         this.projectiles = {};
 
         setInterval(this.update.bind(this), 1000 / 60);
-        setInterval(this.checkCollision.bind(this), 1000 / 60);
     }
 
     public addSnake(socket: SocketIO.Socket, username?: string): any {
@@ -64,6 +63,8 @@ export default class Game {
     }
 
     public update(): void {
+        this.checkCollision();
+
         // send a game update
         if (this.shouldSendUpdate) {
             Object.keys(this.sockets).forEach((id) => {
@@ -133,22 +134,16 @@ export default class Game {
     }
 
     public createSnakesUpdate(snake: Snake): any {
-        var me: any = null;
+        var me = null;
+        var snakes: Snake[] = Object.values(this.snakes)
         if (snake !== undefined) {
-            me = snake.serialize()
+            me = snake.serialize();
+            snakes = snakes.filter(s => s.id != snake.id);
         }
-        
-        const snakes: Snake[] = Object.values(this.snakes)
+
         return {
             me: me,
-            others: snakes
-                .filter((s) => {
-                    if (snake === undefined || s === undefined)
-                        return false
-
-                    return s.id != snake.id
-                })
-                .map((s) => s.serialize()),
+            others: snakes.map((s) => s.serialize()),
             t: Date.now(),
         };
     }
