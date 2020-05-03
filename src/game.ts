@@ -25,8 +25,8 @@ export default class Game {
         this.sockets[socket.id] = socket;
 
         // set his starting position
-        const x: number = Config.MAP_WIDTH * (0.25 + Math.random() * 0.5);
-        const y: number = Config.MAP_HEIGHT * (0.25 + Math.random() * 0.5);
+        const x: number = Config.MAP_WIDTH * Math.random();
+        const y: number = Config.MAP_HEIGHT * Math.random();
 
         if (username === undefined) {
             username = uniqueNamesGenerator({
