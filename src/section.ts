@@ -1,21 +1,21 @@
-import Placeholder from "./placeholder";
 import { Guid } from "guid-typescript";
+import { Circle } from "./utilities/shapes";
 
-export default class Section extends Placeholder {
-    private _guid: Guid;
-    private _radius: number;
+export default class Section extends Circle {
+    public guid: string;
+    public isHead: boolean;
 
     constructor(x: number, y: number, radius: number) {
-        super(x, y);
-        this._guid = Guid.create();
-        this._radius = radius;
+        super(x, y, radius);
+        this.guid = Guid.create().toString();
+        this.isHead = false;
     }
 
     public serialize(): any {
         return {
             ...(super.serialize()),
-            guid: this._guid.toString(),
-            radius: this._radius
+            guid: this.guid,
+            isHead: this.isHead
         }
     }
 }
