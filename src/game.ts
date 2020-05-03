@@ -17,8 +17,8 @@ export default class Game {
         this.snakes = {};
         this.projectiles = {};
 
-        setInterval(this.update.bind(this), 1000 / 120);
-        setInterval(this.checkCollision.bind(this), 1000 / 120);
+        setInterval(this.update.bind(this), 1000 / 60);
+        setInterval(this.checkCollision.bind(this), 1000 / 60);
     }
 
     public addSnake(socket: SocketIO.Socket, username?: string): any {
@@ -93,7 +93,7 @@ export default class Game {
         for (let [projectileKey, projectile] of Object.entries(this.projectiles)) {
             for (let [snakeKey, snake] of Object.entries(this.snakes)) {
                 if (projectile.owner === snakeKey) {
-                    break;
+                    continue;
                 }
 
                 for (let i = 0; i <= snake.sections.length - 1; i++) {
