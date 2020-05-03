@@ -7,8 +7,8 @@ export class Config {
     static INITIAL_PROJECTILE_SPEED: number = 5;
     static INITIAL_PROJECTILE_RADIUS: number = 4;
     static INITIAL_PROJECTILE_VELOCITY: number = 0.1;
-    static MAP_WIDTH: number = 100;
-    static MAP_HEIGHT: number = 100;
+    static MAP_WIDTH: number = 4000;
+    static MAP_HEIGHT: number = 4000;
 }
 
 export enum ProjectileStatus{
