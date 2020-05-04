@@ -1,5 +1,5 @@
 import { ProjectileStatus, Config } from "./config";
-import ISpatial from "./spatial";
+import ISpatial from "./interfaces/spatial";
 import { Circle } from "./utilities/shapes";
 
 export default class Projectile extends Circle implements ISpatial {
@@ -23,7 +23,7 @@ export default class Projectile extends Circle implements ISpatial {
     public launch(): void {
         this._interval = setInterval(() => {
             this.progress();
-        }, 1000 / 30);
+        }, 1000 / 60);
     }
 
     public progress(): void {

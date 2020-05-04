@@ -1,5 +1,3 @@
-import Spatial from "./spatial";
-
 export default class Placeholder {
     public x: number;
     public y: number;

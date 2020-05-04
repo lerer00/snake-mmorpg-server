@@ -4,9 +4,13 @@ import IMouse from "./mouse";
 import IHealth from "./interfaces/health";
 import Projectile from "./projectile";
 import { Guid } from "guid-typescript";
-import ISpatial from "./spatial";
+import ISpatial from "./interfaces/spatial";
+import ICooldown from "./interfaces/cooldown";
+import { intToRGB } from "./utilities/util";
+import { Circle, Point } from "./utilities/shapes";
 
-export default class Snake implements IHealth, ISpatial {
+export default class Snake implements IHealth, ISpatial, ICooldown {
+    private _target: Point;
     public status: HealthStatus;
     public health: [number, number];
     public id: string;
@@ -15,28 +19,45 @@ export default class Snake implements IHealth, ISpatial {
     public sections: Section[];
     public speed: number;
     public velocity: [number, number];
+    public cooldownUntil: number;
+    public cooldownInterval: number;
+
+    public r: number;
 
     constructor(id: string, username: string, x: number, y: number) {
+        this._target = new Point(0, 0);
+
         this.status = HealthStatus.ALIVE
         this.health = [Config.INITIAL_SNAKE_HEALTH, Config.INITIAL_SNAKE_HEALTH];
         this.id = id;
         this.username = username;
-        this.color = "0x" + this.intToRGB(this.hashCode(username));
+        this.color = "0x" + intToRGB(this.hashCode(username));
         this.sections = [];
         this.speed = Config.INITIAL_SNAKE_SPEED;
         this.velocity = [Config.INITIAL_SNAKE_VELOCITY, Config.INITIAL_SNAKE_VELOCITY];
+        this.cooldownUntil = 0;
+        this.cooldownInterval = Config.INITIAL_COOLDOWN_INTERVAL;
+
+        this.r = 0;
 
         for (let i = 0, length = Config.INITIAL_SNAKE_LENGTH; i < length; i++) {
             this.sections.push(new Section(x, y, Config.INITIAL_SNAKE_RADIUS));
         }
     }
 
-    public moveTo(p: number[]): void {
+    public move(): void {
+        // adding his new head in front of his old one
+        if (this.sections[0].x + this.getVelocityX() < 0 || this.sections[0].x + this.getVelocityX() > Config.MAP_WIDTH ||
+            this.sections[0].y + this.getVelocityY() < 0 || this.sections[0].y + this.getVelocityY() > Config.MAP_HEIGHT) {
+            return;
+        }
+
         // removing tail from snake
         this.sections.splice(-1);
 
-        // adding his new head in front of his old one
-        let section: Section = new Section(this.sections[0].x + p[0], this.sections[0].y + p[1], Config.INITIAL_SNAKE_RADIUS);
+        let section: Section = new Section(this.sections[0].x + this.getVelocityX(), this.sections[0].y + this.getVelocityY(), Config.INITIAL_SNAKE_RADIUS);
+
+        // setting new head
         section.isHead = true;
         this.sections[0].isHead = false;
 
@@ -45,20 +66,43 @@ export default class Snake implements IHealth, ISpatial {
     }
 
     public chase(mouse: IMouse): void {
+        // check if mouse has moved
+        if (this._target.x == mouse.pointer.x && this._target.y == mouse.pointer.y) {
+            this.move();
+            return;
+        }
+
+        // set new target
+        this._target.x = mouse.pointer.x;
+        this._target.y = mouse.pointer.y;
+
         let dx: number = mouse.pointer.x - this.head().x;
         let dy: number = mouse.pointer.y - this.head().y;
         let angle: number = Math.atan2(dy, dx);
-        this.setVelocityX(Math.cos(angle) * this.getSpeed());
-        this.setVelocityY(Math.sin(angle) * this.getSpeed());
-        this.moveTo([this.getVelocityX(), this.getVelocityY()]);
+
+        var projectedVelocity: [number, number] = [Math.cos(angle) * this.getSpeed(), Math.sin(angle) * this.getSpeed()];
+        var projectedDestination: Point = new Point(this.head().x + projectedVelocity[0], this.head().y + projectedVelocity[1]);
+
+        if (!projectedDestination.in(new Circle(mouse.pointer.x, mouse.pointer.y, Config.MOUSE_SHIELD_RADIUS))) {
+            this.setVelocityX(projectedVelocity[0]);
+            this.setVelocityY(projectedVelocity[1]);
+        }
+
+        this.move();
     }
 
     public shoot(): Projectile {
-        var projectile = new Projectile(this.id, Guid.create().toString(), this.head().x, this.head().y);
-        projectile.setVelocityX(this.getVelocityX());
-        projectile.setVelocityY(this.getVelocityY());
-        projectile.launch();
-        return projectile;
+        if (Date.now() > this.cooldownUntil) {
+            this.cooldownUntil = Date.now() + this.cooldownInterval;
+            var projectile = new Projectile(this.id, Guid.create().toString(), this.head().x, this.head().y);
+            projectile.setVelocityX(this.getVelocityX());
+            projectile.setVelocityY(this.getVelocityY());
+            projectile.launch();
+
+            return projectile;
+        }
+
+        return null;
     }
 
     public hit(value: number): HealthStatus {
@@ -90,11 +134,6 @@ export default class Snake implements IHealth, ISpatial {
 
     private head(): Section {
         return this.sections[0];
-    }
-
-    private intToRGB(code: number): string {
-        const c = (code & 0x00FFFFFF).toString(16).toUpperCase();
-        return "00000".substring(0, 6 - c.length) + c;
     }
 
     public getSpeed(): number {

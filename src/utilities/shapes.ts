@@ -29,36 +29,32 @@ export class Circle {
         return false;
     }
 
-    // export function intersectRectangle(c: PIXI.Circle, r: PIXI.Rectangle): boolean {
-    //     let x: number = c.x;
-    //     let y: number = c.y;
-    
-    //     if (c.x < r.left) {
-    //         x = r.left;
-    //     } else if (c.x > r.left + r.width) {
-    //         x = r.left + r.width;
-    //     }
-    //     if (c.y < r.top) {
-    //         y = r.top;
-    //     } else if (c.y > r.top + r.height) {
-    //         y = r.top + r.height;
-    //     }
-    
-    //     let dx: number = c.x - x;
-    //     let dy: number = c.y - y;
-    //     let d: number = Math.sqrt((dx * dx) + (dy * dy));
-    
-    //     if (d <= c.radius) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
     public serialize(): any {
         return {
             x: this.x,
             y: this.y,
             radius: this.radius,
+        }
+    }
+}
+
+export class Point {
+    public x: number;
+    public y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public in(c: Circle): boolean {
+        return (Math.pow(this.x - c.x, 2) + Math.pow(this.y - c.y, 2)) < (Math.pow(c.radius, 2));
+    }
+
+    public serialize(): any {
+        return {
+            x: this.x,
+            y: this.y
         }
     }
 }  

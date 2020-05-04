@@ -58,7 +58,9 @@ export default class Game {
         var snake: Snake = this.snakes[socket.id];
         if (snake !== (null || undefined)) {
             var projectile: Projectile = this.snakes[socket.id].shoot();
-            this.projectiles[projectile.id] = projectile;
+            if (projectile !== null) {
+                this.projectiles[projectile.id] = projectile;
+            }
         }
     }
 
